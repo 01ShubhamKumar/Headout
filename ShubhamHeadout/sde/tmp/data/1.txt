@@ -1,0 +1,158 @@
+Formatting SqlQueries using Dynamic input
+1st approach
+name=Scanner.nextLine();
+age=scn.nextInt();
+address= Scanner.nextLine();  
+String sqlInsertQuery=”insert into student (‘name’,;age’,’address’) values(“’+name+’”,”+age+”,”’+address+’”)”;
+2nd approach:
+name=Scanner.nextLine();
+age=scn.nextInt();
+address=scn.nextLine();
+sname=”’”+name+”’”;
+address=”’”+address+”’”;
+String sqlInsertQuery=”insert into student (‘name’,;age’,’address’) values(“+sname+”,”+age+”,”+saddress+”)”;
+
+3rd approach
+The above 2 approches are not preferred ,
+To do formatting we prefer String class format()
+public static  String format(String format,object..args)
+name=Scanner.nextLine();
+age=scn.nextInt();
+address=scn.nextLine();
+String sqlInsertQuery=String.format(”insert into student (‘name’,;age’,’address’) values( (‘%s’,’%d’,’%s’)”,name,age,address);
+
+application.properties
+url=mysql:///dbname
+username=root
+password=root
+
+Properties
+It represents the data in the form of key value pair.
+It represents an object of type java.util.Properties
+Properties object hold the data which would be changing frequently in our application.
+1.FileinputStream fis=new FileInputStream(path);
+2.Properties  p=new Properties();
+3.p.load(fis);
+4.int data=p.getProperty(keyvalue);
+Any changes made in the properties file will not be having any impact to the java code.so no need of a.making changes in src code
+b.no-need to recompile
+c.no need to rererun
+Life Cycle of Query Execution
+Java Application(using JDBC give the sql Query)?Database engine will take the query ? do the compilation?execution?DBEngine(ResultSet or int rowCount)?Java Application
+Phases of compilation:- Tokenization(streams of tokens will be given and it will given)?Parsing(Query Tree will be constructed)?QueryOptimization(Convert into Optimized Query Tree)
+1.	Compilation
+a.Query Tokenization
+b.Query Parsing
+c.QueryOptimization
+       
+
+ 2.   Execution
+Once Compilation is successful the optimized query Tree is taken as input and the query will be    executed by the query interpreter.
+3.   Fetch the result
+	Result will be sent in the form of ResultSet or rowCount( non-select Query)
+	To Java Application by database Engine.
+
+Total Time taken=Reuqest Time+Compile time+Execution Time+Response time
+		=1ms+1ms+1+1ms+1ms;
+		=4ms
+	For 1000 query=1000*4ms =4000ms
+IRCTC
+	Select * from trains where source=’xx’ and destination=’xxx’; 5 people execute same query
+BMS
+	Select * from theathres where city=’xx’ and movie=’xxx’;
+
+In the above context,same query is executed multiple times with change in input.
+If we use Statement object Approch
+a.same query has to be compiled every time for every client request,this would create performance issue
+To resolve this problem we need to use “PreparedStatement(I)”
+Advantages of using Prepared Statement
+1.Performance is very high compared to Statement because query is complied only once.
+2.Since we don’t send the query multiple time b/w java application and DB traffic Is reduced
+3.inputs to query need not to be supplied at the beginning dynamically we can supply the input.
+4.inputs to Query can be supplied just like java style no need to perform formatting as per the DB specification.
+5.Best Suitable for inserting Date Values.
+6.Best Suited for BLOB’s and CLOB’s (Ima and pdf) files.
+7.it Prevents SQLInjection Attack.
+Limitation of Prepared Statement
+Statement stmt=con.createStatement();
+Stmt.executeUpdate(query1);
+Stmt.executQuery(query2);
+One Statement object can be used to execute multiple Query but no change in inputs.
+PreparedStatement pstm=con.prepareStatement(query1);
+pstm.executeQuery();
+one PreparedStatement object is restricted to one query,that query can be executed multiple time with change in input.
+
+PreparedStatement(I)
+PreparedStatement prepareStatement(String query) throws exception
+PreparedStatement pstm=con.prepareStatement(sqlQuery) ;
+At this line Query will be sent to DataBase Engine
+DB Engine will compile the Query and stores in database;
+The precompiled Query will be sent to the java application in the form of PreparedStatment object;
+Note: PreparedStatement is also Known as “PrecompiledQuery”.
+pstm.setXXXX(object,object)
+pstm.executeQuery(q);
+pstm.executeUpdate(q);
+Time taken=res time+ex time+ resp time= 1+1+1=3ms for 1000 =>3000ms
+While using Prepared statement would be as shown below
+?	Insert
+String sqlInsertQuery=”Insert into student(name,age,address) values(?,?,?);
+PreparedStatement=con.prepareStatement(sqlInsertQuery);
+//query compiled ready for execution
+Pstmt.setString(1,”ankit”);
+Pstm.setInt(2,23); 
+Pstm.setStting(3,”addressss”);
+Int rowcount=pstm.executeUpdate();//using pstm we can excute same query multiple time with change in input
+?Statement(I) is parent of PreparedStatement(I)
+?	select
+String sqlSelectQuery=”select sid,sname,saddress,sgender from student where sid=?”;
+PreparedStatement pstm=con.prepareStatement(sqlSelectQuery);
+Pstm.set(1,sid);
+ResultSet res=pstm.executeQuery();
+
+?	delete
+String sqlDeleteQuery=”delete from student where sid=?”;
+PreparedStatement pstm=con.prepareStatement(sqlSelectQuery);
+Pstm.set(1,sid);
+ResultSet res=pstm.executeUpdate();
+
+We can use ? only in place of input values and we cannot use in the place of sql keywords,tablenames and column names
+Static query vs Dynamic Query
+Static:-The Sql Query without positional parameter(?) is called static Query.
+Eg :delete from employee where ename=’sachin’;
+Dynamic :- The Sql Query with positional parameter(?) is called Dynamic Query.
+Simple statement can be used for static queries,where as prepared statement object can be used for static queries and dynamic queries also.
+
+ 
+
+     JDBC Project Requirement
+	1.Develop Console Based Application
+a.Create a menu for User to Perform CRUD as Shown Below
+		1.Press 1 for Insert Operation
+		2.Press 1 for select Operation
+		3.Press 1 for update Operation
+		4.Press 1 for delete Operation
+		5.Press 1 for exit 
+			Note: Anything above 5 tell invalid operation
+		b.if User Press 1
+			a.Take input from user to accept data like 1.sid 2.snmae 3.age 4.address
+			b.perfrom insertion 
+			c.display suitable message as
+				a.record inserted successfully
+				b.record insertion failed
+		
+			b.b.if User Press 2
+			a.Take input from user to accept data like 1.sid 
+			b.perfrom select operation 
+			c.display suitable message as
+				a.display the record in the table
+				b.record not available
+			b. c.if User Press 3
+			a.Take input from user to accept data like 1.sid 2.snmae 3.age 4.address
+			b.perfrom insertion 
+			c.display suitable message as
+				a.record inserted successfully
+				b.record insertion failed
+
+
+
+		
